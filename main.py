@@ -1,39 +1,36 @@
 import json
 import time
+from coordinates import get_coordinates
 from districts import get_districts_v1
 from addresses import get_addresses
 from buildings_info import get_buildings_info
 
 start_time = time.time()
 
-url_buildings_info = 'https://аис.фрт.рф'
+url_buildings_info = 'https://аис.фрт.рф/myhouse'
 url_addresses = 'https://krasnodar.ginfo.ru/ulicy/'
 url_districts_v1 = 'https://krasnodar.kitabi.ru/map/street'
 url_districts_v2 = "https://youkarta.ru/krasnodarskij-kraj/krasnodar-23/"
+url_coordinates = "https://dadata.ru/product/geocode/"
 
-with open(r'files/districts_v1.json', 'r') as openfile:
-    j_object1 = json.load(openfile)
-
-with open(r'files/districts_v2.json', 'r') as openfile:
-    j_object2 = json.load(openfile)
+with open(r'files/addresses_v2.json', 'r') as openfile:
+    j_object = json.load(openfile)
 
 try:
     pass
     # addresses = get_addresses(url_addresses)
-    #buildings_info = get_buildings_info(j_object, url_buildings_info)
+    # buildings_info = get_buildings_info(j_object, url_buildings_info)
     # districts = get_districts_v1(url_districts)
+    coordinates = get_coordinates(j_object, url_coordinates)
 except Exception as e:
     print(e)
 
-s1 = s2 = 0
+s = 0
+for k,v in j_object.items():
+    print(k, ":", v)
+    s += len(v)
 
-for k, v in j_object1.items():
-    s1 += len(v)
-
-for k, v in j_object2.items():
-    s2 += len(v)
-
-print(s1, s2)
+print(s)
 print("--- %s seconds ---" % ((time.time() - start_time)/60))
 
 #233 #289

@@ -2,8 +2,10 @@ import time
 import json
 import os
 from bs4 import BeautifulSoup
+from common_func import get_dict
 from selenium import webdriver as wd
 from selenium.webdriver.common.by import By
+from common_func import browser_connect
 
 
 def get_buildings_info(json_addresses, url):
@@ -13,26 +15,15 @@ def get_buildings_info(json_addresses, url):
     :param url: Адрес сайта с информацией о зданиях.
     :return:
     """
-
-    if os.path.exists("files/buildings_more_info.json"):
-        with open('files/buildings_more_info.json', 'r') as json_file:
-            result_dict = json.load(json_file)
-    else:
-        result_dict = {}
-
-    # открываем браузер
     browser = wd.Chrome()
+    result_dict = get_dict("files/buildings_more_info.json")
+    # открываем браузер
     # перебираем списки улиц полученные с сайта krasnodar.ginfo.ru
     for key, value in json_addresses.items():
         if key in result_dict:
             continue
 
-        if os.path.exists(f"files/buildings_info_{key}.json"):
-            with open(f'files/buildings_info_{key}.json', 'r') as json_file:
-                street_info_dict = json.load(json_file)
-        else:
-            street_info_dict = {}
-
+        street_info_dict = get_dict(f"files/buildings_intermediate/buildings_info_{key}.json")
         # tuple - 1599,  set - 1542
         streets = set(s.strip().split(',')[0] for s in value.keys())
         # перебираем улицы в множестве
@@ -41,15 +32,15 @@ def get_buildings_info(json_addresses, url):
             if street in street_info_dict:
                 print('СОХРАНЕННАЯ УЛИЦА:', street)
                 continue
-
             time.sleep(5)
-            browser.get("https://аис.фрт.рф/search/houses")
+            browser.get(url)
             browser.implicitly_wait(15)
             print(street)
             # ищем информацию об улице
-            search = browser.find_element(By.XPATH, "//input[@class='w-100 ui-autocomplete-input']")
+            search = browser.find_element(By.XPATH, "//input[@class='col-12 py-3 ui-autocomplete-input']")
+            # w-100 ui-autocomplete-input
             search.send_keys(f"край. Краснодарский, г. Краснодар, {street}")
-            button_element = browser.find_element(By.XPATH, "//input[@class='green-button-text green-button-outline']") # green-button-text green-button
+            button_element = browser.find_element(By.XPATH, "//button[@class='col-12 find-button text-uppercase']") # green-button-text green-button
             button_element.click()
             soup = BeautifulSoup(browser.page_source, 'lxml')
             street_addresses = soup.find_all('a', class_='green-link-only-hover f-16') # green-link-only-hover f-16
@@ -62,12 +53,11 @@ def get_buildings_info(json_addresses, url):
             build_info_dict = {}
             for article in street_addresses:
                 time.sleep(5)
-                current_url = url+article['href']
+                current_url = 'https://аис.фрт.рф' + article['href']
                 browser.get(current_url)
                 browser.implicitly_wait(15)
                 soup = BeautifulSoup(browser.page_source, 'lxml')
                 num_building_info = soup.find('div', class_='house-description-address__title') # col-12 lg-bold-gilroy text-white mt-40 p-0
-
                 if not num_building_info:
                     print('ERROR', num_building_info)
                     continue
@@ -99,11 +89,10 @@ def get_buildings_info(json_addresses, url):
                 print(f'{k}: {v}')
             print()
 
-            with open(f'files/buildings_info_{key}.json', 'w') as outfile:
+            with open(f'files/buildings_intermediate/buildings_info_{key}.json', 'w') as outfile:
                 json.dump(street_info_dict, outfile)
 
         result_dict[key] = street_info_dict
-        # print(result_dict, '\n')
 
         with open('files/buildings_more_info.json', 'w') as outfile:
             json.dump(result_dict, outfile)

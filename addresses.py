@@ -1,3 +1,4 @@
+import json
 import requests
 from bs4 import BeautifulSoup
 
@@ -26,13 +27,15 @@ def get_addresses(url):
         # Название улицы
         if d.has_attr('class') and d['class'][0] == 'street_unit':
             building_numbers = []
-            street = str(d.find('a').text)
+            # street = str(d.find('a').text)
             current_street = d.find('a')['href']
             # переходим на страницу улицы
             current_url = f'https://krasnodar.ginfo.ru{current_street}'
             html_current_street = requests.get(current_url).text
             soup_2 = BeautifulSoup(html_current_street, 'lxml')
             # список номеров домов расположенных на улице
+            street = " ".join(soup_2.find('h1').text.split()[:-2])
+            print(street)
             building_num = soup_2.find('div', class_='dom_list')
             if building_num:
                 building_numbers = [b.text for b in building_num if b.text != '\n']
@@ -40,6 +43,11 @@ def get_addresses(url):
             letter_dict[street] = building_numbers
             streets_dict[letter] = letter_dict
 
+    with open('files/addresses_v2.json', 'w') as outfile:
+        json.dump(streets_dict, outfile)
+
     return streets_dict
 
 # 1705 улиц
+# 1599
+# 1646 !

@@ -1,7 +1,6 @@
-import time
 import json
 from bs4 import BeautifulSoup
-from selenium import webdriver as wd
+from common_func import browser_connect
 
 
 def get_districts_v1(url):
@@ -11,10 +10,7 @@ def get_districts_v1(url):
     :return: Словарь со списками улиц по районам.
     """
     districts_dict = {}
-    browser = wd.Chrome()
-    browser.get(url)
-    browser.implicitly_wait(15)
-    time.sleep(15)
+    browser = browser_connect(url)
     soup = BeautifulSoup(browser.page_source, 'lxml')
     div_page = soup.find('div', class_='bigblock row categories')
     div = div_page.find_all('div')
@@ -28,13 +24,14 @@ def get_districts_v1(url):
             districts_dict[key].append(street)
 
     return districts_dict
+# 790 улиц
 
 
-def get_content(divs, d, key):
-    for d in divs:
-        if d.has_attr('class') and d['class'][0] == 'content-item':
-            d[key].append(d.text.replace('\n', ''))
-    return d
+def get_content(key, divs, dict_content):
+    for div in divs:
+        if div.has_attr('class') and div['class'][0] == 'content-item':
+            dict_content[key].append(div.text.replace('\n', ''))
+    return dict_content
 
 
 def get_districts_v2(url):
@@ -44,10 +41,8 @@ def get_districts_v2(url):
     :return: Словарь со списками улиц по районам.
     """
     districts_dict = {}
-    browser = wd.Chrome()
-    browser.get(url)
-    browser.implicitly_wait(5)
-    time.sleep(5)
+
+    browser = browser_connect(url)
     soup = BeautifulSoup(browser.page_source, "lxml")
     div_content = soup.find('div', class_='col-sm-8').find('div', class_='row')
     div_districts = div_content.find_all('a')
@@ -64,11 +59,9 @@ def get_districts_v2(url):
         browser.get(a_district)
         browser.implicitly_wait(5)
         soup_streets = BeautifulSoup(browser.page_source, 'lxml')
-
         div_content = soup_streets.find_all('div')
-        for d in div_content:
-            if d.has_attr('class') and d['class'][0] == 'content-item':
-                districts_dict[k].append(d.text.replace('\n', ''))
+
+        districts_dict = get_content(k, div_content, districts_dict)
 
         ul = soup_streets.find_all('ul')
         for u in ul:
@@ -81,22 +74,13 @@ def get_districts_v2(url):
                     soup_n_page = BeautifulSoup(browser.page_source, 'lxml')
                     div_content = soup_n_page.find_all('div')
 
-                    for d in div_content:
-                        if d.has_attr('class') and d['class'][0] == 'content-item':
-                            districts_dict[k].append(d.text.replace('\n', ''))
-
-        """div_content = soup_streets.find_all('div')
-        for d in div_content:
-            if d.has_attr('class') and d['class'][0] == 'content-item':
-                districts_dict[k].append(d.text.replace('\n', ''))"""
+                    districts_dict = get_content(k, div_content, districts_dict)
 
     """with open('files/districts_v2.json', 'w') as outfile:
         json.dump(districts_dict, outfile)"""
 
     return districts_dict
-
-
-#d = get_districts_v2("https://youkarta.ru/krasnodarskij-kraj/krasnodar-23/")
+# 1624 улиц
 
 
 
