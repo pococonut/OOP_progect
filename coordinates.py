@@ -27,15 +27,14 @@ def get_coordinates(json_addresses, url):
         street_coord_dict = get_dict(f"files/coord_intermediate/coord_{key}.json")
 
         for street, number_building in value.items():
-            if street in street_coord_dict:
-                print('СОХРАНЕННАЯ УЛИЦА:', street) # изменить проверку с улицы на дом
-                continue
-
             number_coord_dict = {}
             for num in number_building:
+                if num in list(street_coord_dict.values())[0]:
+                    print('\nСОХРАНЕННЫЙ АДРЕС:', street, num)  # изменить проверку с улицы на дом
+                    continue
+
                 coordinates = []
                 time.sleep(2)
-
                 print(street, num)
 
                 search = browser.find_element(By.XPATH, "//input[@class='custom-input__input']")
@@ -57,14 +56,14 @@ def get_coordinates(json_addresses, url):
                         if not el.has_attr('class'):
                             coordinates.append(el.text)
                 else:
-                    print('\nНет координат для адреса:', street, num, '\n')
+                    print('Нет координат для адреса:', street, num)
                     coordinates = None
                 number_coord_dict[num] = coordinates
             street_coord_dict[street] = number_coord_dict
 
-            print('street_coord_dict')
+            print('\nstreet_coord_dict')
             for k, v in street_coord_dict.items():
-                print(f'{k}\n {v}\n\n')
+                print(f'{k}\n{v}\n')
 
             with open(f'files/coord_intermediate/coord_{key}.json', 'w') as outfile:
                 json.dump(street_coord_dict, outfile)
@@ -73,6 +72,6 @@ def get_coordinates(json_addresses, url):
 
         with open('files/coordinates.json', 'w') as outfile:
             json.dump(addresses_coord_dict, outfile)
-            
+
     return addresses_coord_dict
 

@@ -19,9 +19,9 @@ with open(r'files/addresses_v2.json', 'r') as openfile:
 try:
     pass
     # addresses = get_addresses(url_addresses)
-    # buildings_info = get_buildings_info(j_object, url_buildings_info)
+    buildings_info = get_buildings_info(j_object, url_buildings_info)
     # districts = get_districts_v1(url_districts)
-    coordinates = get_coordinates(j_object, url_coordinates)
+    # coordinates = get_coordinates(j_object, url_coordinates)
 except Exception as e:
     print(e)
 
