@@ -11,18 +11,18 @@ url_buildings_info = 'https://аис.фрт.рф/myhouse'
 url_addresses = 'https://krasnodar.ginfo.ru/ulicy/'
 url_districts_v1 = 'https://krasnodar.kitabi.ru/map/street'
 url_districts_v2 = "https://youkarta.ru/krasnodarskij-kraj/krasnodar-23/"
-url_coordinates = "https://dadata.ru/product/geocode/"
-url = 'https://docs.mapbox.com/playground/geocoding/?search_text=Володи%20Головатого%2C%20313&proximity=ip'
+url_coordinates_v1 = "https://dadata.ru/product/geocode/"
+url_coordinates_v2 = 'https://docs.mapbox.com/playground/geocoding/'
 
 with open(r'files/addresses_v2.json', 'r') as openfile:
     j_object = json.load(openfile)
 
 try:
-    pass
+    # pass
     # addresses = get_addresses(url_addresses)
     # buildings_info = get_buildings_info(j_object, url_buildings_info)
     # districts = get_districts_v1(url_districts)
-    coordinates = get_coordinates(j_object, url_coordinates)
+    coordinates = get_coordinates(j_object, url_coordinates_v2)
 except Exception as e:
     print(e)
 

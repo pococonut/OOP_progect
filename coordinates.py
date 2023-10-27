@@ -7,7 +7,6 @@ from selenium import webdriver as wd
 from selenium.webdriver.common.by import By
 
 
-
 def get_coordinates(json_addresses, url):
     """
     Функция для получения координат адреса.
@@ -18,47 +17,38 @@ def get_coordinates(json_addresses, url):
     browser = wd.Chrome()
     browser.get(url)
     browser.implicitly_wait(15)
-
     addresses_coord_dict = get_dict("files/coordinates.json")
 
-    """for key, value in json_addresses.items():
+    for key, value in json_addresses.items():
         if key in addresses_coord_dict:
             continue
 
         street_coord_dict = get_dict(f"files/coord_intermediate/coord_{key}.json")
-
         for street, number_building in value.items():
             number_coord_dict = {}
             for num in number_building:
-                if num in list(street_coord_dict.values())[0]:
+                if list(street_coord_dict.values()) and num in list(street_coord_dict.values())[0]:
                     print('\nСОХРАНЕННЫЙ АДРЕС:', street, num)  # изменить проверку с улицы на дом
                     continue
 
-                coordinates = []
-                time.sleep(2)
-                print(street, num)
-
-                search = browser.find_element(By.XPATH, "//input[@class='custom-input__input']")
+                time.sleep(3)
+                search = browser.find_element(By.XPATH, "//input[@class='mapboxgl-ctrl-geocoder--input']")
                 search.send_keys(Keys.SHIFT + Keys.HOME + Keys.DELETE)
-                button_element = browser.find_element(By.XPATH, "//button[@class='demo-form__button accented xxx-big']")
-                search.send_keys(f"г. Краснодар, {street} {num}")
-
-                try:
-                    button_element.click()
-                except Exception as e:
-                    print(e)
-                    continue
+                search.send_keys(f"Краснодарский Край, Краснодар {street} {num}")
+                search.send_keys(Keys.ENTER)
 
                 soup = BeautifulSoup(browser.page_source, 'lxml')
-                grid_coordinates = soup.find_all('div', class_='grid-2-cols--withMobile')  # green-link-only-hover f-16
+                grid_coordinates = soup.find('div', class_='w-full mt12 txt-ms').find('div', class_='relative')
+
                 if grid_coordinates:
-                    grid_coordinates = grid_coordinates[0].find_all('span')[:5]
-                    for el in grid_coordinates:
-                        if not el.has_attr('class'):
-                            coordinates.append(el.text)
+                    coordinates = str(grid_coordinates).split('"center": [')[1].split('],')[0].split(', ')[::-1]
+                    print(street, num)
+                    print(coordinates)
+                    print()
                 else:
                     print('Нет координат для адреса:', street, num)
                     coordinates = None
+
                 number_coord_dict[num] = coordinates
             street_coord_dict[street] = number_coord_dict
 
@@ -74,10 +64,10 @@ def get_coordinates(json_addresses, url):
         with open('files/coordinates.json', 'w') as outfile:
             json.dump(addresses_coord_dict, outfile)
 
-    return addresses_coord_dict"""
+    return addresses_coord_dict
 
 
-def get_coordinates_0(json_addresses, url):
+def get_coordinates_old(json_addresses, url):
     """
     Функция для получения координат адреса.
     :param json_addresses: Словарь с адресами.
