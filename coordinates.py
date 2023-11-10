@@ -36,7 +36,7 @@ def get_coordinates(json_addresses, url):
                 time.sleep(1)
                 search.send_keys(f"Краснодарский Край, Краснодар {street} {num} ")
                 search.send_keys(Keys.ENTER)
-                time.sleep(2)
+                time.sleep(1)
                 soup = BeautifulSoup(browser.page_source, 'lxml')
                 grid_coordinates = soup.find('div', class_='w-full mt12 txt-ms').find('div', class_='relative')
 

@@ -16,8 +16,6 @@ url_coordinates = 'https://docs.mapbox.com/playground/geocoding/'
 with open(r'files/addresses_v2.json', 'r') as openfile:
     j_object = json.load(openfile)
 
-with open(r'files/buildings_info.json', 'r') as openfile:
-    b_object = json.load(openfile)
 
 try:
     # pass
@@ -28,38 +26,6 @@ try:
 except Exception as e:
     print(e)
 
-"""unic_num = []
-for k, v in j_object.items():
-    # print(f'-----------------------------{k}-----------------------------')
-    for s, n in v.items():
-        for i in n:
-            if i not in unic_num:
-                unic_num.append(i)
 
-print()
+print("--- %s seconds ---" % ((time.time() - start_time) / 60))
 
-unic_num = {}
-unic_key = []
-
-not_null = 0
-null = 0
-for k, v in b_object.items():
-    print()
-    print(f'-----------------------------{k}-----------------------------')
-    print()
-    for s, n in v.items():
-        if n:
-            for i, j in n.items():
-                if i not in unic_num:
-                    unic_num[i] = s
-                # print(f'{s} {i}:   {j}')
-            not_null += 1
-        else:
-            null += 1
-print(not_null, null)
-for i, j in sorted(unic_num.items(), key=lambda x: (len(x[0]))):
-    if '(' in i:
-        print(f'{j} - {i}')"""
-
-
-print("--- %s seconds ---" % ((time.time() - start_time)/60))
