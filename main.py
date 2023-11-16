@@ -17,8 +17,11 @@ with open(r'files/addresses_v2.json', 'r') as openfile:
     j_object = json.load(openfile)
 
 
+with open(r'files/buildings_intermediate/buildings_info_К.json', 'r') as openfile:
+    b_object = json.load(openfile)
+
 try:
-    # pass
+    pass
     # addresses = get_addresses(url_addresses)
     buildings_info = get_buildings_info(j_object, url_buildings_info)
     # districts = get_districts_v1(url_districts)
@@ -26,6 +29,10 @@ try:
 except Exception as e:
     print(e)
 
+print(len(b_object))
+print(len(j_object['К']))
 
+# 173
+# 185
 print("--- %s seconds ---" % ((time.time() - start_time) / 60))
 

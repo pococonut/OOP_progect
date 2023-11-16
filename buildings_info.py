@@ -27,8 +27,8 @@ def check_address(street, a_links, street_addresses=None):
         not_allow = ['почтовое отделение', 'г. краснодар, х.',
                      'г. краснодар, п.', 'г краснодар, х', 'ст-ца']
 
-        types = ['проезд', 'переулок', 'улица', 'проспект', 'бульвар',
-                 'набережная', 'сквер', 'площадь', 'набережная', 'тупик']
+        types = ['улица', 'проезд', 'переулок', 'проспект', 'набережная',
+                 'сквер', 'площадь', 'набережная', 'тупик', 'бульвар']
 
         check_num = street.split()
         for ch in check_num:
@@ -39,7 +39,12 @@ def check_address(street, a_links, street_addresses=None):
                     break
             break
 
-        check_street = "".join([street.lower().replace(t, '') for t in types if t in street.lower()]).strip()
+        check_street = street
+        for t in types:
+            if t in street.lower():
+                check_street = street.lower().replace(t, '')
+                break
+
         check_street = " ".join(check_street.split()) if check_street else street.lower()
 
         if check_street not in address_building.lower():
@@ -91,10 +96,11 @@ def make_beautiful_number(num_building):
 
     num = "".join([i for i in num if i.isdigit() or i.isalpha() or i == '/'])
 
-    for_change = {'литер': 'лит', 'корпус': 'корп'}
+    for_change = {'литеры': 'лит', 'литер': 'лит', 'корпус': 'корп'}
     for k, v in for_change.items():
         if k in num:
             num = num.replace(k, v)
+            break
 
     return num
 
@@ -124,9 +130,17 @@ def get_buildings_info(json_addresses, url):
             continue
 
         street_info_dict = get_dict(f"files/buildings_intermediate/buildings_info_{key}.json")
+
+        # Если словарь не пуст, удаляем последнее значение, так как из-за прерывания программы
+        # информация могла сохраниться не полностью
+        if street_info_dict:
+            street_info_dict.popitem()
+
         streets = set(s.strip().split(',')[0] for s in value.keys())
         # перебираем улицы в множестве
         for street in streets:
+            if street == "Краснодарская улица":
+                continue
             if street in street_info_dict:
                 print('СОХРАНЕННАЯ УЛИЦА:', street)
                 continue
@@ -155,10 +169,16 @@ def get_buildings_info(json_addresses, url):
                 if len(pages) > 1:
                     for i in range(2, int(pages[-2].text) + 1):
                         try:
+                            time.sleep(2)
+                            print(i)
                             link = browser.find_element(By.LINK_TEXT, str(i))
                         except Exception as e:
                             print(e)
-                            continue
+
+                            #time.sleep(60)
+                            #sys.exit()
+                            #continue
+                            break
 
                         browser.execute_script("arguments[0].click();", link)
                         browser.implicitly_wait(15)
@@ -238,7 +258,6 @@ def get_buildings_info(json_addresses, url):
                 json.dump(street_info_dict, outfile)
 
         result_dict[key] = street_info_dict
-
         with open('files/buildings_info.json', 'w') as outfile:
             json.dump(result_dict, outfile)
 
