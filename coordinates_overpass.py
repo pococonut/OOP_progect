@@ -42,6 +42,11 @@ def write_coordinates_overpass():
         if street[0].isdigit():
             street = street.split()
             street = " ".join(street[0:1] + [street[1].capitalize()] + street[2:])
+        elif street.split()[0].lower() == "улица":
+            street = " ".join([w.capitalize() if (w != "имени" and w != "им.") else w for w in street.split()])
+            if street[-1] == '.':
+                initials = ".".join([w.capitalize() for w in street.split()[-1].split(".")])
+                street = " ".join(street.split()[:-1]) + " " + initials
         else:
             street = street.capitalize()
 
