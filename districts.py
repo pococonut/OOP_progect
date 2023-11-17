@@ -24,7 +24,6 @@ def get_districts_v1(url):
             districts_dict[key].append(street)
 
     return districts_dict
-# 790 улиц
 
 
 def get_content(key, divs, dict_content):
@@ -76,11 +75,10 @@ def get_districts_v2(url):
 
                     districts_dict = get_content(k, div_content, districts_dict)
 
-    """with open('files/districts_v2.json', 'w') as outfile:
-        json.dump(districts_dict, outfile)"""
+    with open('files/districts_v2.json', 'w') as outfile:
+        json.dump(districts_dict, outfile)
 
     return districts_dict
-# 1624 улиц
 
 
 

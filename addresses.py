@@ -10,13 +10,13 @@ def get_addresses(url):
     :return: Словарь адресов.
     """
     streets_dict, letter_dict = {}, {}
-    letter = ' '
     html_all_streets = requests.get(url).text
     soup = BeautifulSoup(html_all_streets, 'lxml')
     # список улиц и объектов включенных в класс ulica_list
     streets_lst = soup.find('div', class_='ulica_list')
     # получение всех объектов div из streets_lst
     div = streets_lst.find_all('div')
+    letter = ' '
 
     for d in div:
         # Проверяем букву
@@ -27,7 +27,6 @@ def get_addresses(url):
         # Название улицы
         if d.has_attr('class') and d['class'][0] == 'street_unit':
             building_numbers = []
-            # street = str(d.find('a').text)
             current_street = d.find('a')['href']
             # переходим на страницу улицы
             current_url = f'https://krasnodar.ginfo.ru{current_street}'
@@ -35,7 +34,6 @@ def get_addresses(url):
             soup_2 = BeautifulSoup(html_current_street, 'lxml')
             # список номеров домов расположенных на улице
             street = " ".join(soup_2.find('h1').text.split()[:-2])
-            print(street)
             building_num = soup_2.find('div', class_='dom_list')
             if building_num:
                 building_numbers = [b.text for b in building_num if b.text != '\n']
@@ -47,7 +45,3 @@ def get_addresses(url):
         json.dump(streets_dict, outfile)
 
     return streets_dict
-
-# 1705 улиц
-# 1599
-# 1646 !

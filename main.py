@@ -32,8 +32,6 @@ except Exception as e:
 for i in b_object:
     print(i)
 
-
-
 # 173
 # 185
 print("--- %s seconds ---" % ((time.time() - start_time) / 60))
