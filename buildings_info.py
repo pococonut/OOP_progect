@@ -32,8 +32,8 @@ def check_address(street, a_links, street_addresses=None):
 
         check_num = street.split()
         for ch in check_num:
-            for j in ch:
-                if j.isdigit():
+            for el in ch:
+                if el.isdigit():
                     check_num.remove(ch)
                     street = " ".join(check_num)
                     break
@@ -77,22 +77,24 @@ def check_url(browser_url, a_url):
     return True
 
 
-def make_beautiful_number(num_building):
+def make_beautiful_number(num_building, flag=0):
     """
     Функция для обработки и приведения к нужному формату номера здания
+    :param flag:
     :param num_building: Строка с адресом здания
     :return: Номер здания
     """
-
-    symbol = ' д ' if ' д. ' not in num_building else ' д. '
-    try:
-        if len(num_building.split(symbol)) >= 2:
-            num = num_building.split(symbol)[1]
-        else:
-            num = num_building.split('д.')[1]
-    except Exception as e:
-        print(e)
-        return False
+    num = num_building
+    if flag:
+        symbol = ' д ' if ' д. ' not in num_building else ' д. '
+        try:
+            if len(num_building.split(symbol)) >= 2:
+                num = num_building.split(symbol)[1]
+            else:
+                num = num_building.split('д.')[1]
+        except Exception as e:
+            print(e)
+            return False
 
     num = "".join([i for i in num if i.isdigit() or i.isalpha() or i == '/'])
 
@@ -214,7 +216,7 @@ def get_buildings_info(json_addresses, url):
                 # получаем номер дома
                 print('Номер дома до обработки:', num_building.text)
 
-                num = make_beautiful_number(num_building.text)
+                num = make_beautiful_number(num_building.text, 1)
                 if not num:
                     continue
 
@@ -262,3 +264,85 @@ def get_buildings_info(json_addresses, url):
             json.dump(result_dict, outfile)
 
     return result_dict
+
+
+def get_buildings_info_domreestr(json_addresses, url):
+    """
+    Функция для получения информации о зданиях.
+    :param json_addresses: Список адресов.
+    :param url: Адрес сайта с информацией о зданиях.
+    :return: Словарь с информацией о зданиях.
+    """
+
+    browser = wd.Chrome()
+    browser.get(url)
+
+    result_dict = get_dict("files/buildings_info.json")
+
+    for key, value in result_dict.items():
+
+        street_info_dict = get_dict(f"files/buildings_intermediate_domreestr/buildings_info_{key}.json")
+        # Если словарь не пуст, удаляем последнее значение, так как из-за прерывания программы
+        # информация могла сохраниться не полностью
+        if street_info_dict:
+            street_info_dict.popitem()
+
+        for street, numbers in value.items():
+
+            if street in street_info_dict:
+                print('СОХРАНЕННАЯ УЛИЦА:', street)
+                continue
+
+            browser.get(url)
+            time.sleep(1)
+            browser.implicitly_wait(15)
+            # ищем информацию об улице
+            search = browser.find_element(By.XPATH, f'//input[@class="form-control"]')
+            search.send_keys(Keys.SHIFT + Keys.HOME + Keys.DELETE)
+            # передаем адрес в поисковую строку
+            search.send_keys(f"край. Краснодарский, г. Краснодар, {street}")
+            button_element = browser.find_element(By.XPATH, f'//button[@class="btn btn-danger btn-lg"]')
+            button_element.click()
+
+            soup = BeautifulSoup(browser.page_source, 'lxml')
+            table = soup.find('tbody').find_all('a')
+            all_links = [a for a in table if "Краснодар" in a.text.replace('Краснодарский', '')]
+            right_links = check_address(street, all_links)
+            if not right_links:
+                continue
+
+            for article in right_links:
+                time.sleep(2)
+                address_url = 'https://domreestr.ru' + article['href']
+                browser.get(address_url)
+                browser.implicitly_wait(15)
+
+                soup = BeautifulSoup(browser.page_source, 'lxml')
+                table = soup.find('table', class_='table table-light table-striped table-hover')
+                print(table)
+                keys = {'Общая площадь дома, всего м': 'Общая площадь, кв.м',
+                        'Площадь жилых помещений м': 'Общая площадь жилых помещений, кв.м',
+                        'Наибольшее количество этажей': 'Количество этажей, ед.',
+                        'Количество жителей': 'Численность жителей, чел.',
+                        'Количество подъездов': 'Количество подъездов, ед.',
+                        '': 'Количество лифтов, ед.',
+                        'Жилых помещений': 'Количество жилых помещений, ед.'}
+
+                num_building = soup.find('ul', class_='breadcrumb mt-2').find_all('li')[-1].text.strip()
+                if not num_building:
+                    print('ERROR', num_building)
+                    continue
+                # получаем номер дома
+                print('Номер дома до обработки:', num_building)
+
+                num = make_beautiful_number(num_building)
+                if not num:
+                    continue
+
+                print('Номер дома после обработки:', num, '\n')
+                if numbers:
+                    if num not in numbers:
+                        print(numbers)
+                else:
+                    street_info_dict[street] = {num: {}}
+
