@@ -48,8 +48,9 @@ def check_address(street, a_links, street_addresses=None):
         check_street = " ".join(check_street.split()) if check_street else street.lower()
 
         if check_street not in address_building.lower():
-            print('УЛИЦЫ НЕТ В НАЗВАНИИ')
+            """print('УЛИЦЫ НЕТ В НАЗВАНИИ')
             print(address_building, "|", street)
+            print()"""
             continue
 
         if [True for i in not_allow if i in address_building.lower()]:
@@ -96,13 +97,26 @@ def make_beautiful_number(num_building, flag=0):
             print(e)
             return False
 
+    num = num.split('(')[0] if "(" in num else num
     num = "".join([i for i in num if i.isdigit() or i.isalpha() or i == '/'])
 
-    for_change = {'литеры': 'лит', 'литер': 'лит', 'корпус': 'корп'}
+    for_change = {'литеры': 'лит',
+                  'литера': 'лит',
+                  'литер': 'лит',
+                  'ЛИТЕР': 'лит',
+                  'корпус': 'к',
+                  'стр': 'с',
+                  'корп': 'к',
+                  "c": "c"}
+
     for k, v in for_change.items():
         if k in num:
             num = num.replace(k, v)
             break
+
+    if sum(map(lambda x: 1 if x.isalpha() else 0, num)) > 6:
+        print('Большое кол-во букв', num)
+        return False
 
     return num
 
@@ -177,9 +191,9 @@ def get_buildings_info(json_addresses, url):
                         except Exception as e:
                             print(e)
 
-                            #time.sleep(60)
-                            #sys.exit()
-                            #continue
+                            # time.sleep(60)
+                            # sys.exit()
+                            # continue
                             break
 
                         browser.execute_script("arguments[0].click();", link)
@@ -247,13 +261,13 @@ def get_buildings_info(json_addresses, url):
                 if dict_info_building:
                     build_info_dict[num] = dict_info_building
 
-            street_info_dict[street] = None if build_info_dict == {} else build_info_dict
+            street_info_dict[street] = {} if build_info_dict == {} else build_info_dict
             search_class = 'col-12 py-3 ui-autocomplete-input'
             button_class = 'col-12 find-button text-uppercase'
             button_teg = 'button'
             print(f'street_info_dict:')
             for k, v in street_info_dict.items():
-                print(f'{k}: {v}')
+                print(k, v)
             print()
 
             with open(f'files/buildings_intermediate/buildings_info_{key}.json', 'w') as outfile:
@@ -274,12 +288,45 @@ def get_buildings_info_domreestr(json_addresses, url):
     :return: Словарь с информацией о зданиях.
     """
 
+    def make_dict_info(s):
+        """
+        Функция для создания словаря с информацией о здании
+        :param s:  объект BeautifulSoup
+        :return: словарь с информацией о здании
+        """
+
+        table_building = s.find('table', class_='table table-light table-striped table-hover').find_all('td')
+        keys_dict = {'Общая площадь дома, всего м2': 'Общая площадь, кв.м',
+                     'Площадь жилых помещений м2': 'Общая площадь жилых помещений, кв.м',
+                     'Наибольшее количество этажей': 'Количество этажей, ед.',
+                     'Количество жителей': 'Численность жителей, чел.',
+                     'Количество подъездов': 'Количество подъездов, ед.',
+                     'Количество лифтов': 'Количество лифтов, ед.',
+                     'Жилых помещений': 'Количество жилых помещений, ед.'}
+
+        b_info = {}
+        data = []
+        c = 0
+        for td in table_building:
+            if c == 2:
+                c = 0
+                if data[0] in keys_dict.keys():
+                    b_info[keys_dict.get(data[0])] = data[1]
+                data = []
+            c += 1
+            data.append(td.text)
+
+        return b_info
+
     browser = wd.Chrome()
-    browser.get(url)
 
     result_dict = get_dict("files/buildings_info.json")
+    result_dict_domreestr = get_dict("files/buildings_info_domreestr.json")
 
     for key, value in result_dict.items():
+        if key in result_dict_domreestr:
+            print(key)
+            continue
 
         street_info_dict = get_dict(f"files/buildings_intermediate_domreestr/buildings_info_{key}.json")
         # Если словарь не пуст, удаляем последнее значение, так как из-за прерывания программы
@@ -294,7 +341,7 @@ def get_buildings_info_domreestr(json_addresses, url):
                 continue
 
             browser.get(url)
-            time.sleep(1)
+            # time.sleep(1)
             browser.implicitly_wait(15)
             # ищем информацию об улице
             search = browser.find_element(By.XPATH, f'//input[@class="form-control"]')
@@ -312,37 +359,46 @@ def get_buildings_info_domreestr(json_addresses, url):
                 continue
 
             for article in right_links:
-                time.sleep(2)
+                # time.sleep(1)
                 address_url = 'https://domreestr.ru' + article['href']
                 browser.get(address_url)
                 browser.implicitly_wait(15)
 
                 soup = BeautifulSoup(browser.page_source, 'lxml')
-                table = soup.find('table', class_='table table-light table-striped table-hover')
-                print(table)
-                keys = {'Общая площадь дома, всего м': 'Общая площадь, кв.м',
-                        'Площадь жилых помещений м': 'Общая площадь жилых помещений, кв.м',
-                        'Наибольшее количество этажей': 'Количество этажей, ед.',
-                        'Количество жителей': 'Численность жителей, чел.',
-                        'Количество подъездов': 'Количество подъездов, ед.',
-                        '': 'Количество лифтов, ед.',
-                        'Жилых помещений': 'Количество жилых помещений, ед.'}
 
                 num_building = soup.find('ul', class_='breadcrumb mt-2').find_all('li')[-1].text.strip()
                 if not num_building:
                     print('ERROR', num_building)
                     continue
+
                 # получаем номер дома
                 print('Номер дома до обработки:', num_building)
-
                 num = make_beautiful_number(num_building)
                 if not num:
                     continue
-
                 print('Номер дома после обработки:', num, '\n')
-                if numbers:
-                    if num not in numbers:
-                        print(numbers)
-                else:
-                    street_info_dict[street] = {num: {}}
 
+                if [True for n in numbers if num in n]:
+                    continue
+
+                print(f'Дополняем список домов {article.text} | {street}')
+                print('num', num)
+                print('numbers', *list(numbers.keys()))
+
+                b_inf = make_dict_info(soup)
+                if b_inf:
+                    numbers[num] = b_inf
+                    print('numbers', *list(numbers.keys()))
+                    print(numbers, sep='\n')
+            street_info_dict[street] = numbers
+            print()
+            print('street_info_dict')
+            for k, v in street_info_dict.items():
+                print(k, v)
+
+            with open(f'files/buildings_intermediate_domreestr/buildings_info_{key}.json', 'w') as outfile:
+                json.dump(street_info_dict, outfile)
+
+        result_dict_domreestr[key] = street_info_dict
+        with open('files/buildings_info_domreestr.json', 'w') as outfile:
+            json.dump(result_dict_domreestr, outfile)

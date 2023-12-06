@@ -18,7 +18,7 @@ with open(r'files/addresses_v2.json', 'r') as openfile:
     j_object = json.load(openfile)
 
 
-with open(r'files/coordinates_overpass.json', 'r') as openfile:
+with open(r'files/buildings_info.json', 'r') as openfile:
     b_object = json.load(openfile)
 
 try:
@@ -32,10 +32,48 @@ try:
 except Exception as e:
     print(e)
 
-"""for i, j in j_object.items():
-    for k, v in j.items():
-        if not v:
-            print(k,v)"""
+
+"""c = 0
+new_d = {}
+for num, street in b_object.items():
+    new_j = {}
+    for k, v in street.items():
+        new_x = {}
+        for x in v:
+            if 'c' in x:
+                print(x)
+                n_x = x.replace('c', 'с')
+                print(n_x)
+                new_x[n_x] = v[x]
+                c += 1
+            else:
+                new_x[x] = v[x]
+
+        new_j[k] = new_x
+    new_d[num] = new_j
+print(c)
+
+c= 0
+for num, street in new_d.items():
+    new_j = {}
+    for k, v in street.items():
+        new_x = {}
+        for x in v:
+            if 'c' in x:
+                print(x)
+                n_x = x.replace('c', 'с')
+                print(n_x)
+                new_x[n_x] = v[x]
+                c += 1
+            else:
+                new_x[x] = v[x]
+
+        new_j[k] = new_x
+    new_d[num] = new_j
+print(c)
+
+with open('files/buildings_info.json', 'w') as outfile:
+    json.dump(new_d, outfile)"""
 
 # 173
 # 185
