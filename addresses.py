@@ -34,6 +34,7 @@ def get_addresses(url):
             soup_2 = BeautifulSoup(html_current_street, 'lxml')
             # список номеров домов расположенных на улице
             street = " ".join(soup_2.find('h1').text.split()[:-2])
+            street = street.split(" (")[0] if " (" in street else street
             building_num = soup_2.find('div', class_='dom_list')
             if building_num:
                 building_numbers = [b.text for b in building_num if b.text != '\n']

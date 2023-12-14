@@ -100,14 +100,15 @@ def make_beautiful_number(num_building, flag=0):
     num = num.split('(')[0] if "(" in num else num
     num = "".join([i for i in num if i.isdigit() or i.isalpha() or i == '/'])
 
-    for_change = {'литеры': 'лит',
+    for_change = {'дробь': '/',
+                  'литеры': 'лит',
                   'литера': 'лит',
                   'литер': 'лит',
                   'ЛИТЕР': 'лит',
                   'корпус': 'к',
                   'стр': 'с',
                   'корп': 'к',
-                  "c": "c"}
+                  'c': 'c'}
 
     for k, v in for_change.items():
         if k in num:
@@ -191,9 +192,9 @@ def get_buildings_info(json_addresses, url):
                         except Exception as e:
                             print(e)
 
-                            # time.sleep(60)
-                            # sys.exit()
-                            # continue
+                            #time.sleep(60)
+                            #sys.exit()
+                            #continue
                             break
 
                         browser.execute_script("arguments[0].click();", link)
@@ -230,7 +231,7 @@ def get_buildings_info(json_addresses, url):
                 # получаем номер дома
                 print('Номер дома до обработки:', num_building.text)
 
-                num = make_beautiful_number(num_building.text, 1)
+                num = make_beautiful_number(num_building.text)
                 if not num:
                     continue
 
@@ -261,13 +262,13 @@ def get_buildings_info(json_addresses, url):
                 if dict_info_building:
                     build_info_dict[num] = dict_info_building
 
-            street_info_dict[street] = {} if build_info_dict == {} else build_info_dict
+            street_info_dict[street] = None if build_info_dict == {} else build_info_dict
             search_class = 'col-12 py-3 ui-autocomplete-input'
             button_class = 'col-12 find-button text-uppercase'
             button_teg = 'button'
             print(f'street_info_dict:')
             for k, v in street_info_dict.items():
-                print(k, v)
+                print(f'{k}: {v}')
             print()
 
             with open(f'files/buildings_intermediate/buildings_info_{key}.json', 'w') as outfile:
@@ -323,23 +324,31 @@ def get_buildings_info_domreestr(json_addresses, url):
     result_dict = get_dict("files/buildings_info.json")
     result_dict_domreestr = get_dict("files/buildings_info_domreestr.json")
 
-    for key, value in result_dict.items():
-        if key in result_dict_domreestr:
+    for key, value in result_dict_domreestr.items():
+        if key != 'Г':
             print(key)
             continue
+        """if key in result_dict_domreestr:
+            print(key)
+            continue"""
 
         street_info_dict = get_dict(f"files/buildings_intermediate_domreestr/buildings_info_{key}.json")
         # Если словарь не пуст, удаляем последнее значение, так как из-за прерывания программы
         # информация могла сохраниться не полностью
-        if street_info_dict:
-            street_info_dict.popitem()
+        """if street_info_dict:
+            street_info_dict.popitem()"""
 
         for street, numbers in value.items():
 
-            if street in street_info_dict:
+            """if street in street_info_dict:
                 print('СОХРАНЕННАЯ УЛИЦА:', street)
+                continue"""
+            if numbers:
+                #print("ЕСТЬ ИНФОРМАЦИЯ")
+                #print(street, numbers)
                 continue
-
+            print()
+            print(street, numbers)
             browser.get(url)
             # time.sleep(1)
             browser.implicitly_wait(15)
@@ -372,12 +381,9 @@ def get_buildings_info_domreestr(json_addresses, url):
                     continue
 
                 # получаем номер дома
-                print('Номер дома до обработки:', num_building)
                 num = make_beautiful_number(num_building)
                 if not num:
                     continue
-                print('Номер дома после обработки:', num, '\n')
-
                 if [True for n in numbers if num in n]:
                     continue
 
@@ -390,15 +396,17 @@ def get_buildings_info_domreestr(json_addresses, url):
                     numbers[num] = b_inf
                     print('numbers', *list(numbers.keys()))
                     print(numbers, sep='\n')
+            print(street)
+
             street_info_dict[street] = numbers
             print()
-            print('street_info_dict')
+            """print('street_info_dict')
             for k, v in street_info_dict.items():
-                print(k, v)
+                print(k, v)"""
 
-            with open(f'files/buildings_intermediate_domreestr/buildings_info_{key}.json', 'w') as outfile:
+            """with open(f'files/buildings_intermediate_domreestr/buildings_info_{key}.json', 'w') as outfile:
                 json.dump(street_info_dict, outfile)
 
         result_dict_domreestr[key] = street_info_dict
         with open('files/buildings_info_domreestr.json', 'w') as outfile:
-            json.dump(result_dict_domreestr, outfile)
+            json.dump(result_dict_domreestr, outfile)"""
